@@ -47,6 +47,7 @@ AZURE_SEARCH_VECTOR_COLUMNS = os.environ.get("AZURE_SEARCH_VECTOR_COLUMNS")
 AZURE_SEARCH_QUERY_TYPE = os.environ.get("AZURE_SEARCH_QUERY_TYPE")
 AZURE_SEARCH_PERMITTED_GROUPS_COLUMN = os.environ.get("AZURE_SEARCH_PERMITTED_GROUPS_COLUMN")
 AZURE_SEARCH_STRICTNESS = os.environ.get("AZURE_SEARCH_STRICTNESS", 3)
+AZURE_SEARCH_ENDPOINT = os.environ.get("AZURE_SEARCH_ENDPOINT")
 
 # AOAI Integration Settings
 AZURE_OPENAI_RESOURCE = os.environ.get("AZURE_OPENAI_RESOURCE")
@@ -73,12 +74,14 @@ AZURE_COSMOSDB_DATABASE = os.environ.get("AZURE_COSMOSDB_DATABASE")
 AZURE_COSMOSDB_ACCOUNT = os.environ.get("AZURE_COSMOSDB_ACCOUNT")
 AZURE_COSMOSDB_CONVERSATIONS_CONTAINER = os.environ.get("AZURE_COSMOSDB_CONVERSATIONS_CONTAINER")
 AZURE_COSMOSDB_ACCOUNT_KEY = os.environ.get("AZURE_COSMOSDB_ACCOUNT_KEY")
+AZURE_COSMOSDB_ENDPOINT = os.environ.get("AZURE_COSMOSDB_ENDPOINT")
+AZURE_GRAPH_ENDPOINT = os.environ.get("AZURE_GRAPH_ENDPOINT")
 
 # Initialize a CosmosDB client with AAD auth and containers
 cosmos_conversation_client = None
 if AZURE_COSMOSDB_DATABASE and AZURE_COSMOSDB_ACCOUNT and AZURE_COSMOSDB_CONVERSATIONS_CONTAINER:
     try :
-        cosmos_endpoint = f'https://{AZURE_COSMOSDB_ACCOUNT}.documents.azure.com:443/'
+        cosmos_endpoint = AZURE_COSMOSDB_ENDPOINT if AZURE_COSMOSDB_ENDPOINT else f'https://{AZURE_COSMOSDB_ACCOUNT}.documents.azure.com:443/'
 
         if not AZURE_COSMOSDB_ACCOUNT_KEY:
             credential = DefaultAzureCredential()
@@ -115,7 +118,7 @@ def fetchUserGroups(userToken, nextLink=None):
     if nextLink:
         endpoint = nextLink
     else:
-        endpoint = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf?$select=id"
+        endpoint = AZURE_GRAPH_ENDPOINT if AZURE_GRAPH_ENDPOINT else "https://graph.microsoft.com/v1.0/me/transitiveMemberOf?$select=id"
     
     headers = {
         'Authorization': "bearer " + userToken
@@ -175,7 +178,7 @@ def prepare_body_headers_with_data(request):
             {
                 "type": "AzureCognitiveSearch",
                 "parameters": {
-                    "endpoint": f"https://{AZURE_SEARCH_SERVICE}.search.windows.net",
+                    "endpoint": AZURE_SEARCH_ENDPOINT if AZURE_SEARCH_ENDPOINT else f"https://{AZURE_SEARCH_SERVICE}.search.windows.net",
                     "key": AZURE_SEARCH_KEY,
                     "indexName": AZURE_SEARCH_INDEX,
                     "fieldsMapping": {
